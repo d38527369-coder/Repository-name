@@ -1,72 +1,247 @@
-s+s> Павло клімов.:
+> Павло клімов.:
 <!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Meow: Tycoon</title>
+    <title>Neon Paw Tycoon Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --neon-blue: #00d2ff; --neon-pink: #ff007a; --bg: #0a0a1a; --card: #161633; --gold: #ffcc00; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; user-select: none; }
-        .header { display: flex; justify-content: space-around; padding: 15px; background: var(--card); border-bottom: 2px solid var(--neon-pink); }
-        .stat-val { font-size: 1.2rem; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 65vh; overflow-y: auto; }
-        .slot { background: var(--card); height: 120px; border-radius: 15px; border: 2px solid #2a2a5a; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .slot.selected { border-color: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
-        .slot.locked { background: rgba(0,0,0,0.5); border: 2px dashed #444; color: #555; }
-        .cat-emoji { font-size: 40px; }
-        .lvl-badge { position: absolute; top: 5px; right: 8px; background: var(--neon-pink); padding: 2px 6px; border-radius: 5px; font-size: 10px; }
-        .controls { position: fixed; bottom: 0; width: 100%; background: #0a0a1a; padding: 15px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-buy { background: var(--neon-blue); color: black; margin-bottom: 10px; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; padding: 20px; text-align: center; }
-        .admin-zone { position: fixed; top: 0; left: 0; width: 50px; height: 50px; z-index: 1000; }
+        :root {
+            --neon-green: #39ff14;
+            --neon-purple: #bc13fe;
+            --dark-bg: #0b0e16;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Шапка */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--neon-purple);
+        }
+
+        .stat { text-align: center; }
+        .stat-value { font-size: 22px; font-weight: bold; color: var(--neon-green); }
+        .stat-label { font-size: 10px; opacity: 0.6; text-transform: uppercase; }
+
+        /* Контентні зони */
+        .page { display: none; flex-grow: 1; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+        .page.active { display: flex; }
+
+        /* Екран ГРИ */
+        .cat-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-cat {
+            width: 240px;
+            height: 240px;
+            background: url('https://img.freepik.com/free-photo/view-neon-illuminated-cat_23-2150491404.jpg') center/cover;
+            border-radius: 50%;
+            border: 6px solid var(--neon-purple);
+            box-shadow: 0 0 30px var(--neon-purple);
+            cursor: pointer;
+            transition: transform 0.05s;
+        }
+
+        .main-cat:active { transform: scale(0.95); }
+
+        .energy-container {
+            width: 80%;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .energy-bar {
+            width: 100%;
+            height: 12px;
+            background: #222;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--neon-green);
+        }
+
+        .energy-fill {
+            width: 100%;
+            height: 100%;
+            background: var(--neon-green);
+            transition: width 0.2s;
+        }
+
+        /* Екран МАГАЗИНУ */
+        .shop-list {
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .shop-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--neon-purple);
+        }
+
+        .buy-btn {
+            background: var(--neon-green);
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        /* Нижнє меню */
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            background: #161b22;
+            border-top: 1px solid #30363d;
+        }
+
+        .nav-item {
+            opacity: 0.5;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-item.active { opacity: 1; color: var(--neon-purple); font-weight: bold; }
+
+        /* Анімація цифр */
+        .plus-one {
+            position: absolute;
+            color: var(--neon-green);
+            font-size: 28px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 0.7s ease-out forwards;
+        }
+
+> Павло клімов.:
+@keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-<div class="admin-zone" onclick="adminTap()"></div>
+    <div class="header">
+        <div class="stat">
+            <div id="balance" class="stat-value">0</div>
+            <div class="stat-label">💰 Монети</div>
+        </div>
+        <div class="stat">
+            <div id="per-click" class="stat-value">1</div>
+            <div class="stat-label">⚡️ За клік</div>
+        </div>
+    </div>
 
-<div class="header">
-    <div style="color: var(--gold);">💰 <span id="coins">0</span></div>
-    <div style="color: var(--neon-blue);">💎 <span id="gems">0</span></div>
-</div>
+    <div id="game-page" class="page active">
+        <div class="cat-container">
+            <div class="main-cat" onclick="clickCat(event)"></div>
+        </div>
+        <div class="energy-container">
+            <div class="stat-label">Енергія: <span id="energy-text">100</span>/100</div>
+            <div class="energy-bar">
+                <div id="energy-fill" class="energy-fill"></div>
+            </div>
+        </div>
+    </div>
 
-<div style="text-align:center; color:#00ff88; padding: 5px; font-size: 0.8rem;">
-    Прибуток: +<span id="income">0</span>/год
-</div>
+    <div id="shop-page" class="page">
+        <h2 style="color: var(--neon-purple);">МАГАЗИН</h2>
+        <div class="shop-list">
+            <div class="shop-item">
+                <div>
+                    <div><b>Супер Лапа</b></div>
+                    <div style="font-size: 12px; opacity: 0.7;">+1 до кожного кліку</div>
+                </div>
+                <button class="buy-btn" onclick="buyUpgrade(100, 1)">100 💰</button>
+            </div>
+            <div class="shop-item">
+                <div>
+                    <div><b>Мега Кіт</b></div>
+                    <div style="font-size: 12px; opacity: 0.7;">+5 до кожного кліку</div>
+                </div>
+                <button class="buy-btn" onclick="buyUpgrade(500, 5)">500 💰</button>
+            </div>
+        </div>
+    </div>
 
-<div class="grid" id="game-grid"></div>
+    <div class="nav-bar">
+        <div class="nav-item active" id="nav-game" onclick="showPage('game')">ГРАТИ</div>
+        <div class="nav-item" id="nav-shop" onclick="showPage('shop')">МАГАЗИН</div>
+    </div>
 
-<div class="controls">
-    <button class="btn btn-buy" onclick="buyCat()">КУПИТИ КОТА (100 💰)</button>
-    <button class="btn" style="background:#222; color:#777; font-size:10px;" onclick="showCashout()">ВИВІД ГРОШЕЙ (КОМІСІЯ 10%)</button>
-</div>
+    <script>
+        let balance = 0;
+        let perClick = 1;
+        let energy = 100;
 
-<div id="admin-modal" class="modal">
-    <h2>👑 АДМІН-ПАНЕЛЬ</h2>
-    <button class="btn" style="background:green; margin:5px 0" onclick="addMoney()">+1,000,000 МОНЕТ</button>
-    <button class="btn" style="background:blue; margin:5px 0" onclick="addGems()">+500 АЛМАЗІВ</button>
-    <button class="btn" style="background:purple; margin:5px 0" onclick="unlockAll()">ВІДКРИТИ ВСІ СЛОТИ</button>
-    <button class="btn" style="background:red; margin-top:20px" onclick="closeAdmin()">ЗАКРИТИ</button>
-</div>
-
-<script>
-    let tg = window.Telegram.WebApp;
-    let state = { coins: 500, gems: 10, unlocked: 5, animals: Array(10).fill(null), last: Date.now() };
-    const emojis = ["🐱", "🐈", "👓", "🎧", "🚀", "🤖", "⚡", "👑", "🌌", "🐯"];
-    let sel = null;
-
-    function init() {
-        const s = localStorage.getItem('meow_save');
-        if (s) {
-            state = JSON.parse(s);
-            let off = Math.min((Date.now() - state.last)/1000, 86400);
-            state.coins += (getInc()/3600) * off;
+        function clickCat(e) {
+            if (energy > 0) {
+                balance += perClick;
+                energy -= 1;
+                updateUI();
+                spawnText(e);
+                
+                if (window.Telegram.WebApp) {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                }
+            }
         }
-        render();
-        setInterval(() => { state.coins += getInc()/3600; updateUI(); }, 1000);
-    }
 
-    function getInc() { return state.animals.reduce((s, a) => s + (a ? Math.pow(3, a.lvl) * 50 : 0), 0); }
+        function updateUI() {
+            document.getElementById('balance').innerText = Math.floor(balance);
+            document.getElementById('per-click').innerText = perClick;
+            document.getElementById('energy-fill').style.width = energy + "%";
+            document.getElementById('energy-text').innerText = energy;
+        }
+
+        function spawnText(e) {
+            const t = document.createElement('div');
+            t.className = 'plus-one';
+            t.innerText = "+" + perClick;
+            t.style.left = e.clientX + "px";
+            t.style.top = e.clientY + "px";
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 700);
+        }
+
+        function showPage(page) {
+            document.getElementById('game-page').classList.remove('active');
+            document.getElementById('shop-page').classList.remove('active');
+            document.getElementById('nav-game').classList.remove('active');
+            document.getElementById('nav-shop').classList.remove('active');
+
+            if(page === 'game') {
+                document.getElementById('game-page').classList.add('active');
+                document.getElementById('nav-game').classList.add('active');
+            } else {
+                document.getElementById('shop-page').classList.add('active');
+                document.getElementById('nav-shop').classList.add('active');
+            }
+        }
