@@ -1,0 +1,72 @@
+s+s> Павло клімов.:
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Meow: Tycoon</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --neon-blue: #00d2ff; --neon-pink: #ff007a; --bg: #0a0a1a; --card: #161633; --gold: #ffcc00; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; user-select: none; }
+        .header { display: flex; justify-content: space-around; padding: 15px; background: var(--card); border-bottom: 2px solid var(--neon-pink); }
+        .stat-val { font-size: 1.2rem; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 65vh; overflow-y: auto; }
+        .slot { background: var(--card); height: 120px; border-radius: 15px; border: 2px solid #2a2a5a; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .slot.selected { border-color: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
+        .slot.locked { background: rgba(0,0,0,0.5); border: 2px dashed #444; color: #555; }
+        .cat-emoji { font-size: 40px; }
+        .lvl-badge { position: absolute; top: 5px; right: 8px; background: var(--neon-pink); padding: 2px 6px; border-radius: 5px; font-size: 10px; }
+        .controls { position: fixed; bottom: 0; width: 100%; background: #0a0a1a; padding: 15px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-buy { background: var(--neon-blue); color: black; margin-bottom: 10px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; padding: 20px; text-align: center; }
+        .admin-zone { position: fixed; top: 0; left: 0; width: 50px; height: 50px; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+<div class="admin-zone" onclick="adminTap()"></div>
+
+<div class="header">
+    <div style="color: var(--gold);">💰 <span id="coins">0</span></div>
+    <div style="color: var(--neon-blue);">💎 <span id="gems">0</span></div>
+</div>
+
+<div style="text-align:center; color:#00ff88; padding: 5px; font-size: 0.8rem;">
+    Прибуток: +<span id="income">0</span>/год
+</div>
+
+<div class="grid" id="game-grid"></div>
+
+<div class="controls">
+    <button class="btn btn-buy" onclick="buyCat()">КУПИТИ КОТА (100 💰)</button>
+    <button class="btn" style="background:#222; color:#777; font-size:10px;" onclick="showCashout()">ВИВІД ГРОШЕЙ (КОМІСІЯ 10%)</button>
+</div>
+
+<div id="admin-modal" class="modal">
+    <h2>👑 АДМІН-ПАНЕЛЬ</h2>
+    <button class="btn" style="background:green; margin:5px 0" onclick="addMoney()">+1,000,000 МОНЕТ</button>
+    <button class="btn" style="background:blue; margin:5px 0" onclick="addGems()">+500 АЛМАЗІВ</button>
+    <button class="btn" style="background:purple; margin:5px 0" onclick="unlockAll()">ВІДКРИТИ ВСІ СЛОТИ</button>
+    <button class="btn" style="background:red; margin-top:20px" onclick="closeAdmin()">ЗАКРИТИ</button>
+</div>
+
+<script>
+    let tg = window.Telegram.WebApp;
+    let state = { coins: 500, gems: 10, unlocked: 5, animals: Array(10).fill(null), last: Date.now() };
+    const emojis = ["🐱", "🐈", "👓", "🎧", "🚀", "🤖", "⚡", "👑", "🌌", "🐯"];
+    let sel = null;
+
+    function init() {
+        const s = localStorage.getItem('meow_save');
+        if (s) {
+            state = JSON.parse(s);
+            let off = Math.min((Date.now() - state.last)/1000, 86400);
+            state.coins += (getInc()/3600) * off;
+        }
+        render();
+        setInterval(() => { state.coins += getInc()/3600; updateUI(); }, 1000);
+    }
+
+    function getInc() { return state.animals.reduce((s, a) => s + (a ? Math.pow(3, a.lvl) * 50 : 0), 0); }
